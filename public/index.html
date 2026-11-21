@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Viper Group - Warehouse Logistics & B2B Quotations</title>
+  <link rel="icon" type="image/webp" href="images/viper-logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    
+    <!-- Top Header -->
+    <header class="main-header">
+      <div class="header-brand">
+        <div class="brand-logo-wrapper">
+          <img src="images/viper-logo.webp" alt="The Viper Group Logo" class="header-brand-logo">
+        </div>
+        <div class="brand-titles">
+          <h1>The Viper <span class="highlight">Group</span></h1>
+          <p class="tagline">Logistics Warehouse & Secure Wholesale Quotations</p>
+        </div>
+      </div>
+
+      <!-- Quick Persona Switcher for easy testing -->
+      <div class="quick-switcher">
+        <span class="switcher-label">View Mode:</span>
+        <div class="switch-buttons">
+          <button id="btnSwitchAdmin" class="switch-btn active" title="Switch to Logistics & Warehouse Admin view">
+            🏢 Logistics Admin
+          </button>
+          <button id="btnSwitchCustomer" class="switch-btn" title="Switch to Wholesale Customer view">
+            👤 Wholesale Customer (VIP)
+          </button>
+        </div>
+      </div>
+
+      <!-- User Profile / Auth Area -->
+      <div class="header-auth" id="headerAuthArea">
+        <!-- Injected dynamically by JS -->
+      </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="sub-nav" id="mainNav">
+      <!-- Admin Nav Links -->
+      <div class="nav-links admin-nav" id="adminNavLinks">
+        <button class="nav-tab active" data-tab="admin-inventory">
+          <span class="tab-icon">🏭</span> Storage & Logistics Inventory
+        </button>
+        <button class="nav-tab" data-tab="admin-quotations">
+          <span class="tab-icon">📄</span> Quotation Studio
+        </button>
+        <button class="nav-tab" data-tab="admin-requests">
+          <span class="tab-icon">📥</span> Customer Quote Requests <span class="badge-count" id="pendingRequestsBadge">0</span>
+        </button>
+        <button class="nav-tab" data-tab="admin-customers">
+          <span class="tab-icon">👥</span> B2B Customer Accounts
+        </button>
+      </div>
+
+      <!-- Customer Nav Links -->
+      <div class="nav-links customer-nav hidden" id="customerNavLinks">
+        <button class="nav-tab active" data-tab="customer-catalog">
+          <span class="tab-icon">🛍️</span> Wholesale Catalog
+        </button>
+        <button class="nav-tab" data-tab="customer-quotations">
+          <span class="tab-icon">🔐</span> My Quotations (Password Protected)
+        </button>
+        <button class="nav-tab" data-tab="customer-cart">
+          <span class="tab-icon">📋</span> Request Quotation Cart <span class="badge-count" id="cartCountBadge">0</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- ============================================================== -->
+      <!-- ADMIN VIEW: STORAGE & LOGISTICS INVENTORY                      -->
+      <!-- ============================================================== -->
+      <section id="tab-admin-inventory" class="tab-content active">
+        <!-- KPI Metrics Banner -->
+        <div class="kpi-banner">
+          <div class="kpi-card">
+            <div class="kpi-icon">📦</div>
+            <div class="kpi-body">
+              <span class="kpi-label">Total Unique SKUs</span>
+              <span class="kpi-val" id="kpiTotalSkus">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🚚</div>
+            <div class="kpi-body">
+              <span class="kpi-label">Cartons in Storage</span>
+              <span class="kpi-val" id="kpiTotalCartons">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🔢</div>
+            <div class="kpi-body">
+              <span class="kpi-label">Individual Units In Stock</span>
+              <span class="kpi-val" id="kpiTotalUnits">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">🏷️</div>
+            <div class="kpi-body">
+              <span class="kpi-label">Wholesale Inventory Value</span>
+              <span class="kpi-val" id="kpiTotalValue">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Header & Action Controls -->
+        <div class="section-toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="adminSearchInput" placeholder="Search item, SKU, orientation, or storage bin...">
+            </div>
+            <select id="adminCategoryFilter" class="filter-select">
+              <option value="all">All Categories</option>
+            </select>
+            <select id="adminZoneFilter" class="filter-select">
+              <option value="all">All Warehouse Zones</option>
+              <option value="Zone A - Fragile Goods Vault">Zone A - Fragile Goods</option>
+              <option value="Zone B - Heavy Ceramics Bay">Zone B - Heavy Ceramics</option>
+              <option value="Zone C - High Security Tools">Zone C - High Security Tools</option>
+              <option value="Zone C - Cookware Racks">Zone C - Cookware Racks</option>
+              <option value="Zone D - Climate Controlled Tech">Zone D - Climate Controlled</option>
+            </select>
+          </div>
+
+          <div class="toolbar-right">
+            <button class="btn btn-primary" id="btnOpenAddItemModal">
+              <span>➕</span> Add Storage Item
+            </button>
+            <button class="btn btn-accent" id="btnAutoGenerateMasterQuote" title="Convert all storage items into an official quotation for a customer with 1 click">
+              <span>⚡</span> Auto-Generate Quotation from Storage Items
+            </button>
+          </div>
+        </div>
+
+        <!-- Storage Items Table -->
+        <div class="data-table-container">
+          <table class="data-table" id="storageItemsTable">
+            <thead>
+              <tr>
+                <th width="40"><input type="checkbox" id="selectAllItemsCheckbox" title="Select all items for bulk quote"></th>
+                <th width="70">Item</th>
+                <th>SKU & Name</th>
+                <th>Category</th>
+                <th>Carton Count (Boxes)</th>
+                <th>Items One by One</th>
+                <th>Total In Storage</th>
+                <th>Special Orientation & Handling</th>
+                <th>Storage Location Area</th>
+                <th>Wholesale Price</th>
+                <th width="110">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="storageItemsTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- ADMIN VIEW: QUOTATION STUDIO                                   -->
+      <!-- ============================================================== -->
+      <section id="tab-admin-quotations" class="tab-content">
+        <div class="section-toolbar">
+          <div class="toolbar-left">
+            <h2>Quotation Management & Dispatch</h2>
+            <p class="section-desc">Create quotations derived from storage items, assign passwords, and agree to send.</p>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn btn-primary" id="btnCreateNewQuote">
+              <span>➕</span> Create Custom Quotation
+            </button>
+          </div>
+        </div>
+
+        <div class="quotations-grid" id="adminQuotationsGrid">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- ADMIN VIEW: CUSTOMER QUOTE REQUESTS                            -->
+      <!-- ============================================================== -->
+      <section id="tab-admin-requests" class="tab-content">
+        <div class="section-toolbar">
+          <div class="toolbar-left">
+            <h2>Pending Customer Inquiries & Quote Requests</h2>
+            <p class="section-desc">Special wholesale customers requesting customized pricing or bulk quantities.</p>
+          </div>
+        </div>
+        <div class="requests-list" id="adminRequestsList">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- ADMIN VIEW: CUSTOMER ACCOUNTS                                  -->
+      <!-- ============================================================== -->
+      <section id="tab-admin-customers" class="tab-content">
+        <div class="section-toolbar">
+          <div class="toolbar-left">
+            <h2>Special Wholesale Customers</h2>
+            <p class="section-desc">Manage accounts authorized to receive confidential wholesale quotations.</p>
+          </div>
+        </div>
+        <div class="customers-table-container">
+          <table class="data-table" id="customersTable">
+            <thead>
+              <tr>
+                <th>Company Name</th>
+                <th>Authorized Contact</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Account Status</th>
+                <th>Issued Quotations</th>
+                <th>Quick Action</th>
+              </tr>
+            </thead>
+            <tbody id="customersTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- CUSTOMER VIEW: WHOLESALE CATALOG (STRICT PRIVACY)             -->
+      <!-- ============================================================== -->
+      <section id="tab-customer-catalog" class="tab-content">
+        <!-- Customer Banner -->
+        <div class="customer-welcome-banner">
+          <div class="banner-text">
+            <h2>Wholesale Products Catalog</h2>
+            <p>Direct wholesale items synchronized from storage inventory. Browse items, view wholesale pricing, and request specialized quotations.</p>
+          </div>
+          <div class="privacy-guarantee-pill">
+            <span>🔒 Confidential Wholesale Pricing Tier</span>
+          </div>
+        </div>
+
+        <!-- Catalog Filters -->
+        <div class="section-toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="customerSearchInput" placeholder="Search catalog items...">
+            </div>
+            <select id="customerCategoryFilter" class="filter-select">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn btn-accent" id="btnGoToCart">
+              <span>📋</span> View Quote Request Cart (<span id="cartCountBtn">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Customer Catalog Grid (Strictly: Name, Picture, Price, Description only!) -->
+        <div class="customer-catalog-grid" id="customerCatalogGrid">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- CUSTOMER VIEW: MY QUOTATIONS (PASSWORD PROTECTED)              -->
+      <!-- ============================================================== -->
+      <section id="tab-customer-quotations" class="tab-content">
+        <div class="section-toolbar">
+          <div class="toolbar-left">
+            <h2>My Official Wholesale Quotations</h2>
+            <p class="section-desc">Access secure quotations approved and sent to your company. Enter your authorization password to view pricing and specifications.</p>
+          </div>
+        </div>
+
+        <div class="customer-quotes-list" id="customerQuotesList">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- CUSTOMER VIEW: QUOTE REQUEST CART                              -->
+      <!-- ============================================================== -->
+      <section id="tab-customer-cart" class="tab-content">
+        <div class="section-toolbar">
+          <div class="toolbar-left">
+            <h2>Request a Custom Wholesale Quotation</h2>
+            <p class="section-desc">Select desired items and quantities from the catalog. Apex Logistics will evaluate your order and issue a password-protected quotation.</p>
+          </div>
+        </div>
+
+        <div class="cart-layout">
+          <div class="cart-items-panel">
+            <div id="cartEmptyState" class="empty-state">
+              <div class="empty-icon">🛍️</div>
+              <h3>Your Quote Request Cart is Empty</h3>
+              <p>Explore the wholesale catalog and add items you would like included in your quotation.</p>
+              <button class="btn btn-primary" id="btnBrowseCatalog">Browse Wholesale Catalog</button>
+            </div>
+            <div id="cartItemsList" class="cart-items-list hidden">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <div class="cart-summary-panel hidden" id="cartSummaryPanel">
+            <h3>Quotation Submission</h3>
+            <div class="summary-line">
+              <span>Total Line Items:</span>
+              <strong id="cartSummaryItemsCount">0</strong>
+            </div>
+            <div class="summary-line">
+              <span>Estimated Order Units:</span>
+              <strong id="cartSummaryUnitsCount">0</strong>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+              <label for="quoteRequestNotes">Custom Notes / Delivery Requirements:</label>
+              <textarea id="quoteRequestNotes" rows="3" placeholder="e.g. Need sea freight shipping, delivery required by end of month..."></textarea>
+            </div>
+            <button class="btn btn-accent btn-block" id="btnSubmitQuoteRequest">
+              <span>🚀</span> Submit Request for Password-Protected Quotation
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ============================================================== -->
+    <!-- MODALS                                                         -->
+    <!-- ============================================================== -->
+
+    <!-- Modal: Add / Edit Storage Item (Internal Logistics) -->
+    <div class="modal-overlay hidden" id="itemModal">
+      <div class="modal-box modal-lg">
+        <div class="modal-header">
+          <h3 id="itemModalTitle">Add New Storage Item</h3>
+          <button class="modal-close" data-close="itemModal">&times;</button>
+        </div>
+        <form id="itemForm" class="modal-body">
+          <input type="hidden" id="editItemId">
+          
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="itemSku">SKU Code *</label>
+              <input type="text" id="itemSku" required placeholder="e.g. GLS-CRY-009" class="input-mono">
+            </div>
+            <div class="form-group col-8">
+              <label for="itemName">Item Name *</label>
+              <input type="text" id="itemName" required placeholder="e.g. Artisanal Crystal Goblet (500ml)">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="itemCategory">Category *</label>
+              <select id="itemCategory" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="itemUnitPrice">Wholesale Price ($) * <small>(Visible in Quotation)</small></label>
+              <input type="number" id="itemUnitPrice" step="0.01" min="0" required placeholder="14.50">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-12">
+              <label for="itemDescription">Customer Description * <small>(Shows on quotation)</small></label>
+              <textarea id="itemDescription" rows="2" placeholder="Detailed product specifications, material, quality standard..."></textarea>
+            </div>
+          </div>
+
+          <!-- Product Pictures from Desktop (Support 4, 5+ pictures!) -->
+          <div class="form-row">
+            <div class="form-group col-12">
+              <div class="multi-image-header">
+                <label>Item Pictures (Upload 4, 5+ Pictures from Desktop) *</label>
+                <span class="pictures-counter" id="itemPicturesCountBadge">0 Pictures Added</span>
+              </div>
+              <input type="file" id="itemFileInput" accept="image/png, image/jpeg, image/webp, image/gif" multiple style="display: none;">
+              
+              <!-- Multi-Image Dropzone -->
+              <div class="dropzone" id="imageDropzone">
+                <div class="dropzone-content" id="dropzoneEmpty">
+                  <div class="dropzone-icon">📷</div>
+                  <div class="dropzone-text">
+                    <strong>Click to choose pictures from your desktop (Select multiple files)</strong>
+                    <span>Upload 4, 5, or more pictures • Drag & drop image files here</span>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnBrowseFile">
+                    🖥️ Browse Desktop (Select Multiple)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Uploaded pictures gallery grid (thumbnails with remove buttons) -->
+              <div class="uploaded-gallery-grid" id="uploadedGalleryGrid">
+                <!-- Injected via JS -->
+              </div>
+
+              <div class="url-fallback-toggle">
+                <button type="button" class="btn-link" id="btnToggleUrlInput">
+                  🔗 Or add picture by Image URL
+                </button>
+                <div id="urlInputContainer" class="hidden" style="margin-top: 8px; display: flex; gap: 8px;">
+                  <input type="url" id="itemImageUrlInput" placeholder="https://images.unsplash.com/..." style="flex: 1;">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btnAddUrlImage">Add Picture</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- INTERNAL LOGISTICS DETAILS SECTION -->
+          <div class="internal-logistics-box">
+            <h4>🏭 Internal Logistics & Warehouse Placement (Confidential)</h4>
+            
+            <div class="form-row">
+              <div class="form-group col-4">
+                <label for="itemCartonCount">Carton Count (Boxes) *</label>
+                <input type="number" id="itemCartonCount" min="0" required value="10">
+              </div>
+              <div class="form-group col-4">
+                <label for="itemUnitsPerCarton">Items One by One (Per Carton) *</label>
+                <input type="number" id="itemUnitsPerCarton" min="1" required value="24">
+              </div>
+              <div class="form-group col-4">
+                <label for="itemLooseUnits">Loose / Open Units</label>
+                <input type="number" id="itemLooseUnits" min="0" value="0">
+              </div>
+            </div>
+
+            <div class="calculator-preview">
+              <span>Calculated Total In Storage:</span>
+              <strong id="calcTotalUnitsDisplay">240 units</strong>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-6">
+                <label for="itemSpecialOrientation">Special Orientation & Handling *</label>
+                <select id="itemSpecialOrientation">
+                  <option value="This Side Up ↑ (Fragile Stemware - Top Tier Only)">This Side Up ↑ (Fragile Stemware - Top Tier Only)</option>
+                  <option value="Standard Upright ↑ (Max Stack: 5 Cartons)">Standard Upright ↑ (Max Stack: 5 Cartons)</option>
+                  <option value="Vertical Spout Up ↑ (Cushioned Packaging)">Vertical Spout Up ↑ (Cushioned Packaging)</option>
+                  <option value="Flat Base Down ⬚ (Max 6 Cartons Interlocked)">Flat Base Down ⬚ (Max 6 Cartons Interlocked)</option>
+                  <option value="Rim Facing Up ↑ (Keep Dry / Moisture Proof)">Rim Facing Up ↑ (Keep Dry / Moisture Proof)</option>
+                  <option value="Blade Horizontal ⬌ (Anti-Corrosion Sealed)">Blade Horizontal ⬌ (Anti-Corrosion Sealed)</option>
+                  <option value="Electronics Upright ↑ (Contains Li-Ion Battery)">Electronics Upright ↑ (Contains Li-Ion Battery)</option>
+                  <option value="Do Not Stack ⛔ / Top Layer Only">Do Not Stack ⛔ / Top Layer Only</option>
+                  <option value="Keep Away From Heat & Sunlight ☀️">Keep Away From Heat & Sunlight ☀️</option>
+                </select>
+              </div>
+              <div class="form-group col-6">
+                <label for="itemWarehouseZone">Warehouse Zone *</label>
+                <input type="text" id="itemWarehouseZone" required value="Zone A - Fragile Goods Vault">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-8">
+                <label for="itemStorageLocation">Specific Storage Area Location *</label>
+                <input type="text" id="itemStorageLocation" required placeholder="e.g. Aisle 04, Rack 12, Shelf 3, Bin B-07">
+              </div>
+              <div class="form-group col-4">
+                <label for="itemCostPrice">Internal Cost Price ($)</label>
+                <input type="number" id="itemCostPrice" step="0.01" min="0" placeholder="5.00">
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close="itemModal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btnSaveStorageItem">Save Storage Item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Auto / Custom Generate Quotation -->
+    <div class="modal-overlay hidden" id="generateQuoteModal">
+      <div class="modal-box modal-lg">
+        <div class="modal-header">
+          <h3>Create Wholesale Quotation</h3>
+          <button class="modal-close" data-close="generateQuoteModal">&times;</button>
+        </div>
+        <form id="quoteGenerateForm" class="modal-body">
+          <div class="alert-info">
+            <span>ℹ️</span> <strong>Logistics to Quotation Sync:</strong> Storage items are automatically converted into this quotation. Customer will only see Item Name, Picture, Description, and Wholesale Price. Stock levels and storage locations remain strictly confidential.
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-7">
+              <label for="quoteCustomerSelect">Select Special Customer *</label>
+              <select id="quoteCustomerSelect" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group col-5">
+              <label for="quoteAccessPassword">Quotation Password / Access Code *</label>
+              <div class="input-with-action">
+                <input type="text" id="quoteAccessPassword" required placeholder="e.g. QUOTE-VIP-2026" class="input-mono">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnGeneratePassword" title="Generate random secure passcode">🎲</button>
+              </div>
+              <small>Customer needs this password to unlock their quotation</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-8">
+              <label for="quoteTitle">Quotation Title *</label>
+              <input type="text" id="quoteTitle" required value="2026 Wholesale Storage Catalog Quotation">
+            </div>
+            <div class="form-group col-4">
+              <label for="quoteDiscount">Wholesale Discount (%)</label>
+              <input type="number" id="quoteDiscount" min="0" max="90" step="0.5" value="10">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="quoteValidUntil">Valid Until</label>
+              <input type="date" id="quoteValidUntil">
+            </div>
+            <div class="form-group col-6">
+              <label for="quoteAgreementStatus">Quotation Status</label>
+              <select id="quoteAgreementStatus">
+                <option value="approved_sent">✅ Agreed & Send to Customer</option>
+                <option value="draft">📝 Save as Internal Draft</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="quoteNotes">Quotation Terms & Special Instructions</label>
+            <textarea id="quoteNotes" rows="2" placeholder="e.g. Minimum order quantity per item is 1 master carton. Net 30 payment terms upon dispatch."></textarea>
+          </div>
+
+          <div class="quote-items-selection-box">
+            <div class="box-header">
+              <span id="quoteItemsSelectedCount">All Storage Items Selected (8 Items)</span>
+              <button type="button" class="btn btn-link btn-sm" id="btnToggleAllQuoteItems">Deselect / Select All</button>
+            </div>
+            <div class="quote-items-preview-list" id="quoteItemsPreviewList">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close="generateQuoteModal">Cancel</button>
+            <button type="submit" class="btn btn-accent" id="btnSubmitGenerateQuote">
+              <span>🚀</span> Issue & Send Quotation to Customer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Customer Password Prompt (Unlock Quotation) -->
+    <div class="modal-overlay hidden" id="passwordModal">
+      <div class="modal-box modal-sm text-center">
+        <div class="modal-header">
+          <h3>🔐 Unlock Confidential Quotation</h3>
+          <button class="modal-close" data-close="passwordModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="lock-avatar">🔑</div>
+          <p class="lock-desc">
+            This quotation is password-protected by Apex Logistics. Please enter the quotation password provided by your wholesale account executive.
+          </p>
+          <div class="form-group">
+            <input type="text" id="quoteUnlockInput" placeholder="Enter Quotation Password" class="input-mono input-lg text-center" autocomplete="off">
+          </div>
+          <div id="unlockErrorMsg" class="error-msg hidden"></div>
+          <div class="hint-pill">
+            <span>💡 Sample VIP Password: <strong>QUOTE-VIP-2026</strong></span>
+          </div>
+        </div>
+        <div class="modal-footer justify-center">
+          <button type="button" class="btn btn-secondary" data-close="passwordModal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSubmitUnlockPassword">Unlock Quotation</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: View & Print Quotation Document -->
+    <div class="modal-overlay hidden" id="viewQuotationModal">
+      <div class="modal-box modal-xl printable-modal">
+        <div class="modal-header no-print">
+          <h3>Official Wholesale Quotation</h3>
+          <div class="header-actions">
+            <button class="btn btn-secondary btn-sm" id="btnPrintQuotation">🖨️ Print / Save as PDF</button>
+            <button class="modal-close" data-close="viewQuotationModal">&times;</button>
+          </div>
+        </div>
+
+        <div class="quotation-document" id="quotationDocumentContent">
+          <!-- Rendered via JS with clean corporate invoice/quotation styling -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Customer Login / Sign In -->
+    <div class="modal-overlay hidden" id="authModal">
+      <div class="modal-box modal-md">
+        <div class="modal-header">
+          <h3 id="authModalTitle">Sign In to Wholesale Portal</h3>
+          <button class="modal-close" data-close="authModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <!-- Tabs for Sign In vs Register -->
+          <div class="auth-tabs">
+            <button class="auth-tab-btn active" id="btnTabLogin">Sign In</button>
+            <button class="auth-tab-btn" id="btnTabRegister">New Wholesale Customer</button>
+          </div>
+
+          <form id="loginForm">
+            <div class="form-group">
+              <label for="loginEmail">Email Address</label>
+              <input type="email" id="loginEmail" required placeholder="buyer@specialclient.com">
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" required placeholder="••••••••">
+            </div>
+            <div class="quick-credentials-hint">
+              <strong>Quick Demo Logins:</strong>
+              <div>👑 Admin: <code>admin@logistics.com</code> / <code>admin123</code></div>
+              <div>💼 VIP Client: <code>buyer@specialclient.com</code> / <code>client123</code></div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top: 15px;">Sign In</button>
+          </form>
+
+          <form id="registerForm" class="hidden">
+            <div class="form-group">
+              <label for="regCompany">Company Name *</label>
+              <input type="text" id="regCompany" required placeholder="e.g. Royal Crown Hospitality Ltd">
+            </div>
+            <div class="form-group">
+              <label for="regContact">Contact Person Name *</label>
+              <input type="text" id="regContact" required placeholder="e.g. Jennifer Lawrence">
+            </div>
+            <div class="form-group">
+              <label for="regEmail">Business Email *</label>
+              <input type="email" id="regEmail" required placeholder="jennifer@royalcrown.com">
+            </div>
+            <div class="form-group">
+              <label for="regPhone">Phone Number</label>
+              <input type="tel" id="regPhone" placeholder="+1 (555) 321-7890">
+            </div>
+            <div class="form-group">
+              <label for="regPassword">Password *</label>
+              <input type="password" id="regPassword" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-accent btn-block" style="margin-top: 15px;">Register for Wholesale Account</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Interactive Item Picture Viewer & Zoom Lightbox -->
+    <div class="modal-overlay hidden" id="imageViewerModal">
+      <div class="modal-box modal-xl viewer-modal-box">
+        <div class="modal-header">
+          <div class="viewer-header-info">
+            <h3 id="viewerItemTitle">Product Gallery & Zoom</h3>
+            <span id="viewerItemPrice" class="viewer-price-badge">$0.00</span>
+          </div>
+          <div class="viewer-header-controls">
+            <!-- Zoom Controls -->
+            <div class="zoom-toolbar">
+              <button class="btn btn-secondary btn-sm" id="btnZoomOut" title="Zoom Out (-)">🔍−</button>
+              <span class="zoom-level-label" id="zoomLevelDisplay">100%</span>
+              <button class="btn btn-secondary btn-sm" id="btnZoomIn" title="Zoom In (+)">🔍+</button>
+              <button class="btn btn-secondary btn-sm" id="btnZoomReset" title="Reset Zoom">⟲ Reset</button>
+            </div>
+            <button class="modal-close" data-close="imageViewerModal">&times;</button>
+          </div>
+        </div>
+
+        <div class="modal-body viewer-body">
+          <!-- Main Zoomable Stage -->
+          <div class="viewer-stage-container" id="viewerStageContainer">
+            <div class="viewer-pan-surface" id="viewerPanSurface">
+              <img id="viewerMainImage" src="" alt="Item Image" class="viewer-zoom-img">
+            </div>
+            <!-- Stage Navigation Arrows -->
+            <button class="stage-arrow arrow-left" id="btnViewerPrev" title="Previous Image (←)">❮</button>
+            <button class="stage-arrow arrow-right" id="btnViewerNext" title="Next Image (→)">❯</button>
+            <div class="zoom-hint-pill">💡 Scroll mouse wheel to zoom in/out • Click and drag to pan when zoomed in</div>
+          </div>
+
+          <!-- Thumbnails Strip (Showing all 4, 5, 6+ pictures) -->
+          <div class="viewer-thumbnails-strip" id="viewerThumbnailsStrip">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Item Description & Details -->
+          <div class="viewer-details-footer">
+            <div class="viewer-desc-box">
+              <span class="viewer-cat-pill" id="viewerItemCategory">Category</span>
+              <p id="viewerItemDesc" class="viewer-desc-text"></p>
+            </div>
+            <div class="viewer-actions-box">
+              <button class="btn btn-primary" id="btnViewerAddToCart">
+                <span>➕</span> Add to Quote Request
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Bottom-Left About Widget -->
+    <div class="bottom-about-widget" id="aboutWidget">
+      <button class="about-toggle-btn" id="btnToggleAbout" title="About The Viper Group">
+        <img src="images/viper-logo.webp" class="about-icon-mini" alt="Viper">
+        <span class="about-btn-text">About</span>
+      </button>
+      <div class="about-card-popover hidden" id="aboutPopover">
+        <div class="about-popover-header">
+          <div class="about-brand-mini">
+            <img src="images/viper-logo.webp" class="about-popover-logo" alt="The Viper Group">
+            <span class="about-company-name">The Viper Group</span>
+          </div>
+          <button class="about-close-btn" id="btnCloseAbout" title="Close About">&times;</button>
+        </div>
+        <div class="about-popover-body">
+          <div class="about-credits-label">ENGINEERING & DEVELOPMENT</div>
+          <p class="about-credits-names">
+            Created and programmed by <strong>Ahmed</strong>, <strong>Marden</strong>, <strong>Firdous</strong>, and <strong>Jihad</strong>.
+          </p>
+          <div class="about-badge-tag">The Viper Group • Wholesale Logistics & Quotations</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden file input for 1-click table thumbnail picture swap -->
+    <input type="file" id="quickTableFileInput" accept="image/png, image/jpeg, image/webp, image/gif" style="display: none;">
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
