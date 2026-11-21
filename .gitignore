@@ -1,0 +1,28 @@
+# Logs
+server.log
+server_err.log
+*.log
+
+# Database (we'll let Render create a fresh one)
+logiquote.db
+
+# Uploaded files
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Windows batch files (not needed on server)
+*.bat
+open_app.bat
+start.bat
+start.ps1
+
+# Test files
+test-api.js
+test-upload.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (none here, but just in case)
+node_modules/
