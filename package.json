@@ -1,0 +1,16 @@
+{
+  "name": "viper0072",
+  "version": "1.0.0",
+  "description": "The Viper Group - Warehouse Logistics & B2B Quotation System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "keywords": ["logistics", "warehouse", "quotation", "b2b", "viper"],
+  "author": "The Viper Group",
+  "license": "UNLICENSED",
+  "private": true
+}
